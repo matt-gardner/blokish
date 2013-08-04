@@ -195,7 +195,9 @@ public class GameView extends FrameLayout {
 			ui.place(move.i, move.j, animate);
 		}
 		tabs[move.piece.color].setText( ""+game.boards.get(move.piece.color).score);
-		mayReorderPieces();
+                // TODO(matt-gardner): Only redraw pieces for the player that made the move.
+		reorderPieces();
+		// mayReorderPieces();
 		invalidate();
 	}
 	
