@@ -46,7 +46,7 @@ import android.widget.TextView;
  * For DnD approach, refer to http://blog.scoutant.org/index.php?post/2011/02/Approche-naturelle-de-Drag-and-Drop-en-Android
  */
 public class GameView extends FrameLayout {
-	private static String tag = "activity";
+	private static String tag = "BLOKISH-GameView";
 	private Paint paint = new Paint();
 	public int size; 
 	public ButtonsView buttons;
@@ -196,7 +196,7 @@ public class GameView extends FrameLayout {
 		}
 		tabs[move.piece.color].setText( ""+game.boards.get(move.piece.color).score);
                 // TODO(matt-gardner): Only redraw pieces for the player that made the move.
-		reorderPieces();
+		reorderPieces(move.piece.color);
 		// mayReorderPieces();
 		invalidate();
 	}
@@ -224,6 +224,7 @@ public class GameView extends FrameLayout {
 	}
 
 	public void reorderPieces( int color) {
+            Log.d(tag, "reordering pieces for player " + color);
 		List<PieceUI> pieces = piecesInStore(color);
 		Collections.sort(pieces);
 		Collections.reverse(pieces);
@@ -248,6 +249,8 @@ public class GameView extends FrameLayout {
 			}
 			piece.replace();
 		}
+                swipe = 0;
+                swipePieces(color, 0);
 	}
 
 	private List<PieceUI> piecesInStore(){

@@ -41,7 +41,7 @@ import android.widget.FrameLayout;
 public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClickListener, Comparable<PieceUI> {
 	
 	public static final int PADDING = 4;
-	private static final String tag = "activity";
+	private static final String tag = "BLOCKISH-PieceUI";
 	
 	private Resources resources;
 	private Drawable square;

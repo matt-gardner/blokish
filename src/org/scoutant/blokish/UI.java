@@ -54,7 +54,7 @@ public class UI extends Activity {
 	private static final int MENU_ITEM_PASS_TURN = 12;
 	private static final int MENU_ITEM_FLIP = 15;
 
-	private static String tag = "activity";
+	private static String tag = "BLOKISH-UI";
 	public GameView game;
 	public boolean devmode=false;
 	private SharedPreferences prefs;
@@ -202,15 +202,18 @@ public class UI extends Activity {
 			}
 			UI.this.game.play( move, true);
 			turn++;
-			if (turn<4) new AITask().execute(turn);
-			if (turn==4) game.indicator.hide();
-			if (turn==4 && !game.redOver ) {
-				game.thinking=false;
-				turn=0;
-				game.showPieces(0);
-				new CheckTask().execute();
-			}
-			if (turn==4 && game.redOver ) {
+                        turn %= 4;
+                        String aiSetting = "ai" + turn;
+                        boolean isAi = prefs.getBoolean(aiSetting, true);
+                        if (isAi) {
+                            new AITask().execute(turn);
+                        } else {
+                            game.indicator.hide();
+                            if (!game.redOver) {
+                                game.thinking = false;
+                                game.showPieces(turn);
+                                new CheckTask().execute();
+                            } else {
 				Log.d(tag, "Red is dead. game.over ? " + game.game.over());
 				if (game.game.over()) {
 					displayWinnerDialog();					
@@ -218,7 +221,8 @@ public class UI extends Activity {
 					turn = 1;
 					new AITask().execute(turn);
 				}
-			}
+                            }
+                        }
 		}
 		private void displayWinnerDialog() {
 			game.indicator.hide();

@@ -2,7 +2,10 @@
 	<CheckBoxPreference 
 		android:key="displaySeeds" android:title="Seeds display" android:summary="Display a dot where you may place a piece" 
 		android:defaultValue="true" />
-	<CheckBoxPreference android:key="ai" android:title="Artificial Intelligence" android:summary="Computer plays Green, Blue and Yellow" android:defaultValue="true" />
+	<CheckBoxPreference android:key="ai0" android:title="Artificial Intelligence For Player 1" android:summary="Computer plays Red" android:defaultValue="false" />
+	<CheckBoxPreference android:key="ai1" android:title="Artificial Intelligence For Player 2" android:summary="Computer plays Green" android:defaultValue="true" />
+	<CheckBoxPreference android:key="ai2" android:title="Artificial Intelligence For Player 3" android:summary="Computer plays Blue" android:defaultValue="true" />
+	<CheckBoxPreference android:key="ai3" android:title="Artificial Intelligence For Player 4" android:summary="Computer plays Yellow" android:defaultValue="true" />
 	<ListPreference 
 		android:key="aiLevel" android:title="Level" android:summary="Customize the level according to your experience"
 		android:entries="@array/aiLevelNames" android:entryValues="@array/aiLevelValues" 

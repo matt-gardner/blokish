@@ -29,7 +29,7 @@ import android.widget.ImageView.ScaleType;
 
 public class ButtonsView extends FrameLayout {
 
-	protected static final String tag = "ui";
+	protected static final String tag = "BLOKISH-ui";
 	
 	private Context context;
 	private ImageButton cancel;
@@ -107,7 +107,13 @@ public class ButtonsView extends FrameLayout {
 				((GameView)getParent()).tabs[move.piece.color].setText( ""+game.game.boards.get(move.piece.color).score);
 				game.selected = null;
 				game.ui.turn = (piece.piece.color+1)%4;
-				if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("ai", true)) {
+                                // Reorder the pieces of the person who just played
+                                game.reorderPieces(piece.piece.color);
+                                String aiSetting = "ai" + game.ui.turn;
+                                boolean isAi = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(aiSetting, true);
+                                Log.d(tag, "ai setting we tried to grab: " + aiSetting);
+                                Log.d(tag, "value of setting: " + isAi);
+				if (isAi) {
 					game.ui.think(game.ui.turn);
 				} else {
 					game.showPieces(game.ui.turn);
