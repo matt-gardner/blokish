@@ -185,7 +185,7 @@ public class UI extends Activity {
 	public int turn = 0;
 	private AITask task = null;
 	
-	private class AITask extends AsyncTask<Integer, Void, Move> {
+	public class AITask extends AsyncTask<Integer, Void, Move> {
 		@Override
 		protected Move doInBackground(Integer... params) {
 			task = this;
@@ -201,154 +201,134 @@ public class UI extends Activity {
 				return;
 			}
 			UI.this.game.play( move, true);
-			turn++;
-                        turn %= 4;
-                        String aiSetting = "ai" + turn;
-                        boolean isAi = prefs.getBoolean(aiSetting, true);
-                        if (isAi) {
-                            new AITask().execute(turn);
-                        } else {
-                            game.indicator.hide();
-                            if (!game.redOver) {
-                                game.thinking = false;
-                                game.showPieces(turn);
-                                new CheckTask().execute();
-                            } else {
-				Log.d(tag, "Red is dead. game.over ? " + game.game.over());
-				if (game.game.over()) {
-					displayWinnerDialog();					
-				} else {
-					turn = 1;
-					new AITask().execute(turn);
-				}
+                        game.endTurn();
+		}
+	}
+
+        public void displayWinnerDialog() {
+            game.indicator.hide();
+            Log.d(tag, "game over !");
+            int winner = game.game.winner();
+            int score = game.game.boards.get(winner).score;
+            String message = "";
+            boolean redWins = (winner==0 && prefs.getBoolean("ai", true));
+            if (redWins) {
+                message += rs.getString( R.string.congratulations) + " " + score +".";
+                if (findRequestedLevel()<(4-1)) message += "\n" + rs.getString( R.string.try_next);
+            } else {
+                // message += "Player " + game.game.colors[winner] + " wins with score : " + score;
+                message += rs.getString( game.game.colors[winner]);
+                message += " " + rs.getString( R.string.wins_with_score) + " : ";
+                message += score;
+            }
+            new EndGameDialog(UI.this, redWins, message, findRequestedLevel()+1, score).show();
+        }
+
+        public class CheckTask extends AsyncTask<Void, Void, Boolean> {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                return !game.ai.hasMove(0);
+            }
+            @Override
+            protected void onPostExecute(Boolean finished) {
+                if (finished) {
+                    game.indicator.hide();
+                    Log.d(tag, "red over!");
+                    new AlertDialog.Builder(UI.this)
+                        .setMessage( R.string.red_ko)
+                        .setCancelable(false)
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                game.redOver = true;
+                                game.game.boards.get(0).over = true;
+                                Log.d(tag, "ok!");
+                                think(1);
                             }
+                        })
+                    .create()
+                        .show();						
+                }
+            }
+        }
+
+        @Override
+        public boolean onKeyDown(int keyCode, KeyEvent event) {
+            if ( keyCode == KeyEvent.KEYCODE_SEARCH) {
+                devmode = !devmode;
+                return true;
+            }
+
+            if ( keyCode == KeyEvent.KEYCODE_BACK) {
+                if (!prefs.getBoolean("popupOnExit", true)) {
+                    UI.this.finish();
+                } else {
+                    new AlertDialog.Builder(this)
+                        .setMessage( R.string.quit)
+                        .setCancelable(false)
+                        .setPositiveButton( R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                UI.this.finish();
+                            }
+                        })
+                    .setNegativeButton( R.string.no, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
                         }
-		}
-		private void displayWinnerDialog() {
-			game.indicator.hide();
-			Log.d(tag, "game over !");
-			int winner = game.game.winner();
-			int score = game.game.boards.get(winner).score;
-			String message = "";
-			boolean redWins = (winner==0 && prefs.getBoolean("ai", true));
-			if (redWins) {
-				 message += rs.getString( R.string.congratulations) + " " + score +".";
-				 if (findRequestedLevel()<(4-1)) message += "\n" + rs.getString( R.string.try_next);
-			} else {
-//				message += "Player " + game.game.colors[winner] + " wins with score : " + score;
-				message += rs.getString( game.game.colors[winner]);
-				message += " " + rs.getString( R.string.wins_with_score) + " : ";
-				message += score;
-			}
-			new EndGameDialog(UI.this, redWins, message, findRequestedLevel()+1, score).show();
-		}
-	}
-	
-	private class CheckTask extends AsyncTask<Void, Void, Boolean> {
-		@Override
-		protected Boolean doInBackground(Void... params) {
-			return !game.ai.hasMove(0);
-		}
-		@Override
-		protected void onPostExecute(Boolean finished) {
-			if (finished) {
-				game.indicator.hide();
-				Log.d(tag, "red over!");
-				new AlertDialog.Builder(UI.this)
-				.setMessage( R.string.red_ko)
-				.setCancelable(false)
-				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						game.redOver = true;
-						game.game.boards.get(0).over = true;
-						Log.d(tag, "ok!");
-						think(1);
-						}
-					})
-				.create()
-				.show();						
-			}
-		}
-	}
-	
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if ( keyCode == KeyEvent.KEYCODE_SEARCH) {
-			devmode = !devmode;
-			return true;
-		}
-		
-		if ( keyCode == KeyEvent.KEYCODE_BACK) {
-			if (!prefs.getBoolean("popupOnExit", true)) {
-				UI.this.finish();
-			} else {
-			new AlertDialog.Builder(this)
-			.setMessage( R.string.quit)
-			.setCancelable(false)
-			.setPositiveButton( R.string.yes, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					UI.this.finish();
-					}
-				})
-			.setNegativeButton( R.string.no, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					}
-				})
-			.create()
-			.show();
-			return true;
-			}
-		}
-		return super.onKeyDown(keyCode, event);
-	}
-	
-	private void save(){
-		FileOutputStream fos;
-		try {
-			fos = openFileOutput("moves.txt", Context.MODE_PRIVATE);
-			if (fos==null) return;
-			if (!game.game.over()) {
-				fos.write( game.game.toString().getBytes());
-			} // if gave is over we do not save it, so as to open a blank game next time
-			fos.close();
-		} catch (FileNotFoundException e) {
-			Log.e(tag, "not found...", e);
-		} catch (IOException e) {
-			Log.e(tag, "io...", e);
-		}
-	}
-	/** sources a list of representions like this sample : 18|16|2|I3|0,-1|0,0|0,1 */
-	private void source() {
-		List<Move> list = new ArrayList<Move>();
-		try {
-			FileInputStream fis = openFileInput("moves.txt");
-			BufferedReader reader = new BufferedReader( new InputStreamReader(fis));
-			String line;
-			reader.readLine(); // first line give the # of moves...
-			while ((line = reader.readLine()) != null)   {
-				String[] data = line.split(":");
-				int i = Integer.valueOf(data[0]);
-				int j = Integer.valueOf(data[1]);
-				int color = Integer.valueOf(data[2]);
-				Piece piece = game.game.boards.get(color).findPieceByType(data[3] );
-				piece.reset();
-				for (int q = 4; q<data.length; q++) {
-					String[] position = data[q].split(",");
-					int x = Integer.valueOf( position[0]);
-					int y = Integer.valueOf( position[1]);
-					piece.add( new Square(x, y ));
-				}
-				Move move = new Move(piece, i, j);
-//				Log.d(tag, "created move : " + move);
-				list.add(move);
-			}
-			newgame();
-			game.replay( list);
-			game.reorderPieces();
-		} catch (Exception e) {
-			Log.e(tag, "yep error is :", e);
-		}
-	}
+                    })
+                    .create()
+                        .show();
+                    return true;
+                }
+            }
+            return super.onKeyDown(keyCode, event);
+        }
+
+        private void save(){
+            FileOutputStream fos;
+            try {
+                fos = openFileOutput("moves.txt", Context.MODE_PRIVATE);
+                if (fos==null) return;
+                if (!game.game.over()) {
+                    fos.write( game.game.toString().getBytes());
+                } // if gave is over we do not save it, so as to open a blank game next time
+                fos.close();
+            } catch (FileNotFoundException e) {
+                Log.e(tag, "not found...", e);
+            } catch (IOException e) {
+                Log.e(tag, "io...", e);
+            }
+        }
+        /** sources a list of representions like this sample : 18|16|2|I3|0,-1|0,0|0,1 */
+        private void source() {
+            List<Move> list = new ArrayList<Move>();
+            try {
+                FileInputStream fis = openFileInput("moves.txt");
+                BufferedReader reader = new BufferedReader( new InputStreamReader(fis));
+                String line;
+                reader.readLine(); // first line give the # of moves...
+                while ((line = reader.readLine()) != null)   {
+                    String[] data = line.split(":");
+                    int i = Integer.valueOf(data[0]);
+                    int j = Integer.valueOf(data[1]);
+                    int color = Integer.valueOf(data[2]);
+                    Piece piece = game.game.boards.get(color).findPieceByType(data[3] );
+                    piece.reset();
+                    for (int q = 4; q<data.length; q++) {
+                        String[] position = data[q].split(",");
+                        int x = Integer.valueOf( position[0]);
+                        int y = Integer.valueOf( position[1]);
+                        piece.add( new Square(x, y ));
+                    }
+                    Move move = new Move(piece, i, j);
+                    //				Log.d(tag, "created move : " + move);
+                    list.add(move);
+                }
+                newgame();
+                game.replay( list);
+                game.reorderPieces();
+            } catch (Exception e) {
+                Log.e(tag, "yep error is :", e);
+            }
+        }
 
 	@Override
 	protected void onStop() {

@@ -18,10 +18,13 @@ import java.util.Collections;
 import java.util.List;
 
 import org.scoutant.blokish.model.AI;
+import org.scoutant.blokish.model.AiPlayer;
 import org.scoutant.blokish.model.Board;
 import org.scoutant.blokish.model.Game;
+import org.scoutant.blokish.model.HumanPlayer;
 import org.scoutant.blokish.model.Move;
 import org.scoutant.blokish.model.Piece;
+import org.scoutant.blokish.model.Player;
 import org.scoutant.blokish.model.Square;
 
 import android.content.Context;
@@ -48,6 +51,7 @@ import android.widget.TextView;
 public class GameView extends FrameLayout {
 	private static String tag = "BLOKISH-GameView";
 	private Paint paint = new Paint();
+        // TODO(matt): make all of these private
 	public int size; 
 	public ButtonsView buttons;
 	public PieceUI selected;
@@ -55,7 +59,7 @@ public class GameView extends FrameLayout {
 	public int swipe=0;
 	public int gone=0;
 	
-	public Game game = new Game();
+	public Game game;
 	public AI ai = new AI(game);
 	public static int[] icons = { R.drawable.bol_rood, R.drawable.bol_groen, R.drawable.bol_blauw, R.drawable.bullet_ball_glass_yellow};
 	public static int[] labels = { R.id.red, R.id.green, R.id.blue, R.id.orange};
@@ -75,7 +79,17 @@ public class GameView extends FrameLayout {
 	public GameView(Context context) {
 		super(context);
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                game = new Game();
 		ui = (UI) context;
+                for (int i = 0; i<4; i++) {
+                    if (isAi(i)) {
+                        // TODO(matt): UGLY!  Get rid of UI dependency here (by moving the AI task
+                        // out of the UI class).
+                        game.setPlayerNum(new AiPlayer(i, ui), i);
+                    } else {
+                        game.setPlayerNum(new HumanPlayer(i), i);
+                    }
+                }
 		setWillNotDraw(false);
 		setLayoutParams( new FrameLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, Gravity.TOP));
 		paint.setStrokeWidth(1.3f);
@@ -135,6 +149,40 @@ public class GameView extends FrameLayout {
 		doTouch(event);
 		return true;
 	}
+
+        public int getCurrentPlayer() {
+            return game.getCurrentPlayer();
+        }
+
+        public boolean isAi(int playerNum) {
+            String aiSetting = "ai" + playerNum;
+            return prefs.getBoolean(aiSetting, true);
+        }
+
+        public void endTurn() {
+            game.endTurn();
+            // This either starts a background task or passes, depending on whether the player is
+            // an AI or not.  So we can do some extra logic here without worrying about it.
+            game.nextTurn();
+            int player = getCurrentPlayer();
+            if (isAi(player)) {
+                indicator.hide();
+            } else {
+                // TODO(matt): fix this - don't just check for red
+                if (!redOver) {
+                    thinking = false;
+                    showPieces(player);
+                    ui.new CheckTask().execute();
+                } else {
+                    Log.d(tag, "Red is dead. game.over ? " + game.over());
+                    if (game.over()) {
+                        ui.displayWinnerDialog();
+                    } else {
+                        endTurn();
+                    }
+                }
+            }
+        }
 	
 	public void doTouch(MotionEvent event) {
 		int action = event.getAction(); 
@@ -195,9 +243,7 @@ public class GameView extends FrameLayout {
 			ui.place(move.i, move.j, animate);
 		}
 		tabs[move.piece.color].setText( ""+game.boards.get(move.piece.color).score);
-                // TODO(matt-gardner): Only redraw pieces for the player that made the move.
 		reorderPieces(move.piece.color);
-		// mayReorderPieces();
 		invalidate();
 	}
 	
@@ -211,17 +257,10 @@ public class GameView extends FrameLayout {
 	}
 
 	
-	public void mayReorderPieces() {
-		gone++;
-		if (gone>=8) {
-			gone = 0;
-			reorderPieces();
-		}
-	}
-	
 	public void reorderPieces() {
-		for (int p=0; p<4; p++) reorderPieces( p);
-	}
+            for (int i=0; i<4; i++)
+                reorderPieces(i);
+        }
 
 	public void reorderPieces( int color) {
             Log.d(tag, "reordering pieces for player " + color);

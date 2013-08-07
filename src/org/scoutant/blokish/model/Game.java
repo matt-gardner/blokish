@@ -26,7 +26,11 @@ public class Game {
 	public int size = 20;
 //	public String[] colors = { "Red", "Green", "Blue", "Orange" };
 	public int[] colors = { R.string.Red, R.string.Green, R.string.Blue, R.string.Orange };
+        private int currentPlayer;
+        private Player[] players;
+
 	public Game() {
+                players = new Player[4];
 		reset();
 	}
 	public void reset() {
@@ -34,7 +38,16 @@ public class Game {
 		for(int k=0; k<4; k++) {
 			boards.add(new Board(k));
 		}
+                currentPlayer = 0;
 	}
+
+        public void setPlayerNum(Player player, int playerNum) {
+            players[playerNum] = player;
+        }
+
+        public int getCurrentPlayer() {
+            return currentPlayer;
+        }
 	
 	public List<Move> moves = new ArrayList<Move>();
 	public void historize(Move move) {
@@ -83,7 +96,9 @@ public class Game {
 		return valid( move.piece, move.i, move.j);
 	}
 	public boolean valid( Piece piece, int i, int j) {
-		return fits(piece, i, j)&& boards.get(piece.color).onseed(piece, i, j);
+		return fits(piece, i, j)
+                    && boards.get(piece.color).onseed(piece, i, j)
+                    && piece.color == currentPlayer;
 	}
 	
 	public boolean fits( Piece p, int i, int j) {
@@ -99,16 +114,28 @@ public class Game {
 		add(move.piece, move.i, move.j);
 		Log.d(tag, "played move : " + move);
 		historize(move);
+                currentPlayer = (currentPlayer + 1) % 4;
 		return true;
 	}
-	
-	public String toString() {
-		String msg = "# moves : " + moves.size();
-		for (Move move: moves) {
-			msg += "\n" + Move.serialize(move);
-		}
-		return msg;
-	}
+
+        public void endTurn() {
+            currentPlayer++;
+            currentPlayer %= 4;
+            // TODO(matt): check for game over, or no more moves, here.  That logic is currently in
+            // GameView.endTurn().
+        }
+
+        public void nextTurn() {
+            players[currentPlayer].takeTurn();
+        }
+
+        public String toString() {
+            String msg = "# moves : " + moves.size();
+            for (Move move: moves) {
+                msg += "\n" + Move.serialize(move);
+            }
+            return msg;
+        }
 
 	public List<Move> deserialize(String msg) {
 		List<Move> list = new ArrayList<Move>();
