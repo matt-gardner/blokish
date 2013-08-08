@@ -23,7 +23,7 @@ import android.util.Log;
 
 public class AI  {
 
-	public static final String tag = "sc";
+	public static final String tag = "BLOKISH-ai";
 	private static final int SIZE_WEIGHT = 5;
 	private static final int CENTER_WEIGHT = 1;
 	private static final int SEEDS_WEIGHT = 3;
@@ -66,6 +66,7 @@ public class AI  {
 	}
 	
 	public Move think(int color, int level) {
+            Log.d(tag, "thinking for color " + color + " at level " + level);
 		if (game.boards.get(color).pieces.isEmpty()) {
 			Log.d(tag, "no more pieces for player : " + color);
 			// no big deal, AI will continue for the other players. At the very end current player will be granted the winning message.

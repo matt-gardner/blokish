@@ -60,7 +60,7 @@ public class GameView extends FrameLayout {
 	public int gone=0;
 	
 	public Game game;
-	public AI ai = new AI(game);
+	public AI ai;
 	public static int[] icons = { R.drawable.bol_rood, R.drawable.bol_groen, R.drawable.bol_blauw, R.drawable.bullet_ball_glass_yellow};
 	public static int[] labels = { R.id.red, R.id.green, R.id.blue, R.id.orange};
 	
@@ -80,6 +80,7 @@ public class GameView extends FrameLayout {
 		super(context);
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
                 game = new Game();
+                ai = new AI(game);
 		ui = (UI) context;
                 for (int i = 0; i<4; i++) {
                     if (isAi(i)) {
@@ -160,24 +161,33 @@ public class GameView extends FrameLayout {
         }
 
         public void endTurn() {
+            int player = getCurrentPlayer();
+            reorderPieces(player);
+            Log.d(tag, "ending turn");
             game.endTurn();
             // This either starts a background task or passes, depending on whether the player is
             // an AI or not.  So we can do some extra logic here without worrying about it.
+            Log.d(tag, "starting next turn");
             game.nextTurn();
-            int player = getCurrentPlayer();
+            player = getCurrentPlayer();
             if (isAi(player)) {
-                indicator.hide();
+                Log.d(tag, "player is AI");
             } else {
+                Log.d(tag, "player is human");
+                indicator.hide();
                 // TODO(matt): fix this - don't just check for red
                 if (!redOver) {
+                    Log.d(tag, "Red is not over, executing CheckTask");
                     thinking = false;
                     showPieces(player);
                     ui.new CheckTask().execute();
                 } else {
                     Log.d(tag, "Red is dead. game.over ? " + game.over());
                     if (game.over()) {
+                        Log.d(tag, "Game is over");
                         ui.displayWinnerDialog();
                     } else {
+                        Log.d(tag, "Game is not over, but red is dead, so we're ending the turn");
                         endTurn();
                     }
                 }
@@ -243,7 +253,6 @@ public class GameView extends FrameLayout {
 			ui.place(move.i, move.j, animate);
 		}
 		tabs[move.piece.color].setText( ""+game.boards.get(move.piece.color).score);
-		reorderPieces(move.piece.color);
 		invalidate();
 	}
 	

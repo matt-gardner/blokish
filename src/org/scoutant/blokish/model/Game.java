@@ -21,7 +21,7 @@ import org.scoutant.blokish.R;
 import android.util.Log;
 
 public class Game {
-	public static final String tag = "sc";
+	public static final String tag = "BLOKISH-Game";
 	public List<Board> boards = new ArrayList<Board>();
 	public int size = 20;
 //	public String[] colors = { "Red", "Green", "Blue", "Orange" };
@@ -114,7 +114,6 @@ public class Game {
 		add(move.piece, move.i, move.j);
 		Log.d(tag, "played move : " + move);
 		historize(move);
-                currentPlayer = (currentPlayer + 1) % 4;
 		return true;
 	}
 

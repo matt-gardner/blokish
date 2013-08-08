@@ -107,8 +107,9 @@ public class ButtonsView extends FrameLayout {
 				((GameView)getParent()).tabs[move.piece.color].setText( ""+game.game.boards.get(move.piece.color).score);
 				game.selected = null;
 				game.ui.turn = (piece.piece.color+1)%4;
+                                game.endTurn();
+                                /*
                                 // Reorder the pieces of the person who just played
-                                game.reorderPieces(piece.piece.color);
                                 String aiSetting = "ai" + game.ui.turn;
                                 boolean isAi = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(aiSetting, true);
                                 Log.d(tag, "ai setting we tried to grab: " + aiSetting);
@@ -119,6 +120,7 @@ public class ButtonsView extends FrameLayout {
 					game.showPieces(game.ui.turn);
 					game.invalidate();
 				}
+                                */
 			}
 		}
 	};
