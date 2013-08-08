@@ -17,10 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.scoutant.blokish.R;
+import org.scoutant.blokish.GameView;
 
 import android.util.Log;
 
 public class Game {
+    // We need this so the model can notify the view that things have changed.
+    private GameView view;
 	public static final String tag = "BLOKISH-Game";
 	public List<Board> boards = new ArrayList<Board>();
 	public int size = 20;
@@ -29,7 +32,8 @@ public class Game {
         private int currentPlayer;
         private Player[] players;
 
-	public Game() {
+	public Game(GameView view) {
+            this.view = view;
                 players = new Player[4];
 		reset();
 	}
@@ -114,19 +118,60 @@ public class Game {
 		add(move.piece, move.i, move.j);
 		Log.d(tag, "played move : " + move);
 		historize(move);
+                view.notifyMovePlayed(move);
 		return true;
 	}
 
         public void endTurn() {
             currentPlayer++;
             currentPlayer %= 4;
+            if (over()) {
+                view.notifyGameOver();
+                return;
+            }
             // TODO(matt): check for game over, or no more moves, here.  That logic is currently in
             // GameView.endTurn().
         }
 
         public void nextTurn() {
-            players[currentPlayer].takeTurn();
+            if (!hasMove(currentPlayer)) {
+                view.notifyHasNoMove(currentPlayer);
+            } else {
+                // TODO(matt): error checking here?
+                players[currentPlayer].takeTurn(new MoveCallback() {
+                    @Override
+                    public void call(Move move) {
+                        play(move);
+                        endTurn();
+                    }
+                });
+            }
         }
+
+    public boolean hasMove(int color) {
+        Board board = boards.get(color);
+        for (Square seed : board.seeds()) {
+            for (int p=0; p<board.pieces.size(); p++) {
+                Piece piece = board.pieces.get(p);
+                // Fixing issue #3, changing order rotate/flip
+                for( int f=0; f<piece.flips; f++, piece.flip()) {
+                    for (int r=0; r<piece.rotations; r++, piece.rotate(1)) {
+                        for (Square s : piece.squares()) {
+                            int i = seed.i - s.i;
+                            int j = seed.j - s.j;
+                            if ( !board.outside(s, i, j) && fits(piece, i, j)) {
+                                Log.d(tag, "possible move : " + new Move(piece, i, j));
+                                boards.get(color).over = false;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        boards.get(color).over = true;
+        return false;
+    }
 
         public String toString() {
             String msg = "# moves : " + moves.size();

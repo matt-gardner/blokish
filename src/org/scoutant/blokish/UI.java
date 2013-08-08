@@ -78,6 +78,12 @@ public class UI extends Activity {
         setContentView(game);
     }
 
+    public void vibrate(int millis) {
+        if (vibrator != null) {
+            vibrator.vibrate(millis);
+        }
+    }
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.clear();
@@ -146,10 +152,9 @@ public class UI extends Activity {
             .create()
                 .show();
         }
-        if (item.getItemId() == MENU_ITEM_THINK) {
-            think(0);
-        }
         if (item.getItemId() == MENU_ITEM_PASS_TURN) {
+            // TODO(matt): move this turn stuff into Game or GameView.  I think we just might need
+            // to call game.endTurn() here.
             turn = (turn+1)%4;
             game.showPieces(turn);
             game.invalidate();
@@ -161,49 +166,12 @@ public class UI extends Activity {
         return false;
     }
 
-    /**
-     * Invokes AI for all players from @param player. Thinking in a background Thread. But one player after the other!
-     */
-    public void think(int player) {
-        turn = player;
-        new AITask().execute(player);
-    }
-
     private int findRequestedLevel() {
         String level = prefs.getString("aiLevel", "0");
         return Integer.valueOf(level);
     }
 
-    private int findLevel() {
-        String level = prefs.getString("aiLevel", "0");
-        int l = Integer.valueOf(level);
-        if (l<0 || l>3) l = 1;
-        return Math.min(l, game.ai.adaptedLevel);
-    }
-
     public int turn = 0;
-    private AITask task = null;
-
-    public class AITask extends AsyncTask<Integer, Void, Move> {
-        @Override
-        protected Move doInBackground(Integer... params) {
-            task = this;
-            game.thinking=true;
-            game.indicator.show();
-            return game.ai.think(params[0], findLevel());
-        }
-
-        @Override
-        protected void onPostExecute(Move move) {
-            if (vibrator!=null && !game.redOver) vibrator.vibrate(15);
-            if (game.game.over()) {
-                displayWinnerDialog();
-                return;
-            }
-            UI.this.game.play( move, true);
-            game.endTurn();
-        }
-    }
 
     public void displayWinnerDialog() {
         game.indicator.hide();
@@ -222,34 +190,6 @@ public class UI extends Activity {
             message += score;
         }
         new EndGameDialog(UI.this, redWins, message, findRequestedLevel()+1, score).show();
-    }
-
-    public class CheckTask extends AsyncTask<Void, Void, Boolean> {
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            return !game.ai.hasMove(0);
-        }
-
-        @Override
-        protected void onPostExecute(Boolean finished) {
-            if (finished) {
-                game.indicator.hide();
-                Log.d(tag, "red over!");
-                new AlertDialog.Builder(UI.this)
-                    .setMessage( R.string.red_ko)
-                    .setCancelable(false)
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            game.redOver = true;
-                            game.game.boards.get(0).over = true;
-                            Log.d(tag, "ok!");
-                            think(1);
-                        }
-                    })
-                .create()
-                    .show();
-            }
-        }
     }
 
     @Override
@@ -333,10 +273,12 @@ public class UI extends Activity {
 
     @Override
     protected void onStop() {
+        /* TODO(matt): should I worry about putting this back in?
         if (task!=null) {
             task.cancel(true);
             Log.d(tag, "leaving AI, as activity is brough to background");
         }
+        */
         save();
         super.onStop();
     }

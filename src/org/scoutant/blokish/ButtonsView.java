@@ -108,19 +108,6 @@ public class ButtonsView extends FrameLayout {
 				game.selected = null;
 				game.ui.turn = (piece.piece.color+1)%4;
                                 game.endTurn();
-                                /*
-                                // Reorder the pieces of the person who just played
-                                String aiSetting = "ai" + game.ui.turn;
-                                boolean isAi = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(aiSetting, true);
-                                Log.d(tag, "ai setting we tried to grab: " + aiSetting);
-                                Log.d(tag, "value of setting: " + isAi);
-				if (isAi) {
-					game.ui.think(game.ui.turn);
-				} else {
-					game.showPieces(game.ui.turn);
-					game.invalidate();
-				}
-                                */
 			}
 		}
 	};

@@ -27,7 +27,9 @@ import org.scoutant.blokish.model.Piece;
 import org.scoutant.blokish.model.Player;
 import org.scoutant.blokish.model.Square;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -60,7 +62,6 @@ public class GameView extends FrameLayout {
     public int gone=0;
 
     public Game game;
-    public AI ai;
     public static int[] icons = { R.drawable.bol_rood, R.drawable.bol_groen, R.drawable.bol_blauw, R.drawable.bullet_ball_glass_yellow};
     public static int[] labels = { R.id.red, R.id.green, R.id.blue, R.id.orange};
 
@@ -79,14 +80,12 @@ public class GameView extends FrameLayout {
     public GameView(Context context) {
         super(context);
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        game = new Game();
-        ai = new AI(game);
+        game = new Game(this);
         ui = (UI) context;
+        int level = findLevel();
         for (int i = 0; i<4; i++) {
             if (isAi(i)) {
-                // TODO(matt): UGLY!  Get rid of UI dependency here (by moving the AI task
-                // out of the UI class).
-                game.setPlayerNum(new AiPlayer(i, ui), i);
+                game.setPlayerNum(new AiPlayer(i, level, game), i);
             } else {
                 game.setPlayerNum(new HumanPlayer(i), i);
             }
@@ -130,6 +129,31 @@ public class GameView extends FrameLayout {
         indicator = new BusyIndicator(context, iView);
     }
 
+    public void notifyHasNoMove(int player) {
+        // TODO(matt): fix this!
+        indicator.hide();
+        Log.d(tag, "red over!");
+        new AlertDialog.Builder(ui)
+            .setMessage( R.string.red_ko)
+            .setCancelable(false)
+            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    redOver = true;
+                    game.boards.get(0).over = true;
+                    Log.d(tag, "ok!");
+                }
+            })
+        .create()
+            .show();
+    }
+
+    private int findLevel() {
+        String level = prefs.getString("aiLevel", "0");
+        int l = Integer.parseInt(level);
+        if (l<0 || l>3) l = 1;
+        return l;
+    }
+
     private class ShowPiecesListener implements OnClickListener {
         private int color;
         protected ShowPiecesListener(int color) {
@@ -170,17 +194,20 @@ public class GameView extends FrameLayout {
         Log.d(tag, "starting next turn");
         game.nextTurn();
         player = getCurrentPlayer();
+        showPieces(player);
         if (isAi(player)) {
             Log.d(tag, "player is AI");
+            thinking=true;
+            indicator.show();
         } else {
+            // TODO(matt): fix this - The logic is spread out in a few places; I'm slowing moving
+            // it to the right places, but it's not done yet.
+            if (!redOver) ui.vibrate(15);
             Log.d(tag, "player is human");
+            thinking = false;
             indicator.hide();
-            // TODO(matt): fix this - don't just check for red
             if (!redOver) {
                 Log.d(tag, "Red is not over, executing CheckTask");
-                thinking = false;
-                showPieces(player);
-                ui.new CheckTask().execute();
             } else {
                 Log.d(tag, "Red is dead. game.over ? " + game.over());
                 if (game.over()) {
@@ -244,16 +271,19 @@ public class GameView extends FrameLayout {
         return findPiece(piece.color, piece.type);
     }
 
-    public void play(Move move, boolean animate) {
+    public void notifyMovePlayed(Move move) {
         if (move==null) return;
+        int player = move.piece.color;
+        boolean animate = isAi(player);
         PieceUI ui = findPiece( move.piece);
-        boolean done = game.play(move);
-        if (done) {
-            lasts[ui.piece.color] = ui;
-            ui.place(move.i, move.j, animate);
-        }
+        lasts[ui.piece.color] = ui;
+        ui.place(move.i, move.j, animate);
         tabs[move.piece.color].setText( ""+game.boards.get(move.piece.color).score);
         invalidate();
+    }
+
+    public void notifyGameOver() {
+        ui.displayWinnerDialog();
     }
 
     public void showPieces(int color){
@@ -326,7 +356,7 @@ public class GameView extends FrameLayout {
             Piece piece = move.piece;
             PieceUI ui = findPiece(piece);
             ui.piece.reset(piece);
-            play(move, false);
+            game.play(move);
         }
         return true;
     }
