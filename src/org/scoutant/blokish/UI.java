@@ -153,11 +153,7 @@ public class UI extends Activity {
                 .show();
         }
         if (item.getItemId() == MENU_ITEM_PASS_TURN) {
-            // TODO(matt): move this turn stuff into Game or GameView.  I think we just might need
-            // to call game.endTurn() here.
-            turn = (turn+1)%4;
-            game.showPieces(turn);
-            game.invalidate();
+            game.endTurn();
         }
         if (item.getItemId() == MENU_ITEM_FLIP) {
             PieceUI piece = game.selected;

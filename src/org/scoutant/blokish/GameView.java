@@ -69,8 +69,6 @@ public class GameView extends FrameLayout {
     public TextView[] tabs = new TextView[4];
 
     public UI ui;
-    /** true if red has acknowlegde no more moves for her */
-    public boolean redOver=false;
     public SharedPreferences prefs;
     public boolean thinking=false;
     public boolean singleline=false;
@@ -130,15 +128,14 @@ public class GameView extends FrameLayout {
     }
 
     public void notifyHasNoMove(int player) {
-        // TODO(matt): fix this!
         indicator.hide();
-        Log.d(tag, "red over!");
+        Log.d(tag, player + " over!");
         new AlertDialog.Builder(ui)
+            // TODO(matt): fix this string, probably only show it once.
             .setMessage( R.string.red_ko)
             .setCancelable(false)
             .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    redOver = true;
                     game.boards.get(0).over = true;
                     Log.d(tag, "ok!");
                 }
@@ -184,40 +181,35 @@ public class GameView extends FrameLayout {
         return prefs.getBoolean(aiSetting, true);
     }
 
+    /**
+     * Tell the game that a human player has ended his/her turn.  AI players have a separate
+     * mechanism for telling the game that their turn is ended, and this logic could also
+     * reasonably be placed somewhere else.
+     */
     public void endTurn() {
         int player = getCurrentPlayer();
         reorderPieces(player);
-        Log.d(tag, "ending turn");
-        game.endTurn();
+        Log.d(tag, "ending human turn");
         // This either starts a background task or passes, depending on whether the player is
         // an AI or not.  So we can do some extra logic here without worrying about it.
-        Log.d(tag, "starting next turn");
-        game.nextTurn();
-        player = getCurrentPlayer();
+        game.endTurn();
+    }
+
+    /**
+     * Notify the game view that a new player is starting a turn.  Note that this only gets called
+     * when the player has a valid move.
+     */
+    public void notifyStartingTurn(int player) {
         showPieces(player);
         if (isAi(player)) {
             Log.d(tag, "player is AI");
             thinking=true;
             indicator.show();
         } else {
-            // TODO(matt): fix this - The logic is spread out in a few places; I'm slowing moving
-            // it to the right places, but it's not done yet.
-            if (!redOver) ui.vibrate(15);
+            ui.vibrate(15);
             Log.d(tag, "player is human");
             thinking = false;
             indicator.hide();
-            if (!redOver) {
-                Log.d(tag, "Red is not over, executing CheckTask");
-            } else {
-                Log.d(tag, "Red is dead. game.over ? " + game.over());
-                if (game.over()) {
-                    Log.d(tag, "Game is over");
-                    ui.displayWinnerDialog();
-                } else {
-                    Log.d(tag, "Game is not over, but red is dead, so we're ending the turn");
-                    endTurn();
-                }
-            }
         }
     }
 

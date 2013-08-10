@@ -129,18 +129,18 @@ public class Game {
                 view.notifyGameOver();
                 return;
             }
-            // TODO(matt): check for game over, or no more moves, here.  That logic is currently in
-            // GameView.endTurn().
-        }
-
-        public void nextTurn() {
+            Log.d(tag, "starting next turn");
             if (!hasMove(currentPlayer)) {
                 view.notifyHasNoMove(currentPlayer);
+                endTurn();
             } else {
-                // TODO(matt): error checking here?
+                view.notifyStartingTurn(currentPlayer);
+                // TODO(matt): human players totally ignore this callback.  Maybe it's worth trying
+                // to modify the way the UI works to make this more consistent?
                 players[currentPlayer].takeTurn(new MoveCallback() {
                     @Override
                     public void call(Move move) {
+                        // TODO(matt): error checking here?
                         play(move);
                         endTurn();
                     }

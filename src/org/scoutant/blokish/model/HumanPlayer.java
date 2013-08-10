@@ -7,7 +7,8 @@ public class HumanPlayer implements Player {
         this.playerNum = playerNum;
     }
 
-    public void takeTurn() {
+    @Override
+    public void takeTurn(MoveCallback callback) {
         // Just do nothing here, because that means we'll wait on an action from the UI.
     }
 
