@@ -52,7 +52,7 @@ public class Board {
 	public List<Piece> pieces = new ArrayList<Piece>();
 	public int nbPieces;
 	public int score;
-	public boolean over=false;
+	public boolean over = false;
 	
 	public Board(int color) {
 		this.color = color;

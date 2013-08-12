@@ -25,7 +25,7 @@
 	
 		
 	<string name="new_game">New Game</string>
-	<string name="red_ko">Red has no more moves</string>
+	<string name="player_ko">%1$s has no more moves</string>
 	<string name="congratulations">Congratulations, you win with score : </string>
 	<string name="try_next">Try next level.</string>
 	<string name="wins_with_score">wins with score</string>

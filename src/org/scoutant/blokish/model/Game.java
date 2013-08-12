@@ -60,10 +60,15 @@ public class Game {
 	
 	/** @return true if game is over */ 
 	public boolean over() {
-		return boards.get(0).over && boards.get(1).over && boards.get(2).over && boards.get(3).over; 
+            for (Board board : boards) {
+                if (!board.over) {
+                    return false;
+                }
+            }
+            return true;
 	}
 	
-	// TODO adapt message when equal score?
+	// TODO(pre-matt): adapt message when equal score?
 	/**
 	 * on equal score : winner is the last to play.
 	 * 
@@ -149,6 +154,11 @@ public class Game {
         }
 
     public boolean hasMove(int color) {
+        // First check to see if we already know the player has no more moves.
+        if (boards.get(color).over) {
+            return false;
+        }
+        // Check for an available move, breaking early if we find one.
         Board board = boards.get(color);
         for (Square seed : board.seeds()) {
             for (int p=0; p<board.pieces.size(); p++) {
@@ -161,7 +171,6 @@ public class Game {
                             int j = seed.j - s.j;
                             if ( !board.outside(s, i, j) && fits(piece, i, j)) {
                                 Log.d(tag, "possible move : " + new Move(piece, i, j));
-                                boards.get(color).over = false;
                                 return true;
                             }
                         }
@@ -169,6 +178,7 @@ public class Game {
                 }
             }
         }
+        // We didn't find an available move, so the player is done.
         boards.get(color).over = true;
         return false;
     }

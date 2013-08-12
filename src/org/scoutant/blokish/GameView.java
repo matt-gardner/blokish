@@ -64,9 +64,12 @@ public class GameView extends FrameLayout {
     public Game game;
     public static int[] icons = { R.drawable.bol_rood, R.drawable.bol_groen, R.drawable.bol_blauw, R.drawable.bullet_ball_glass_yellow};
     public static int[] labels = { R.id.red, R.id.green, R.id.blue, R.id.orange};
+    private int[] colorNames = {R.string.Red, R.string.Green, R.string.Blue, R.string.Orange};
 
     private Drawable[] dots = new Drawable[4];
     public TextView[] tabs = new TextView[4];
+
+    private boolean[] noMoreMoves;
 
     public UI ui;
     public SharedPreferences prefs;
@@ -74,12 +77,15 @@ public class GameView extends FrameLayout {
     public boolean singleline=false;
     public BusyIndicator indicator;
     public PieceUI lasts[] = new PieceUI[4];
+    private Context context;
 
     public GameView(Context context) {
         super(context);
+        this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         game = new Game(this);
         ui = (UI) context;
+        noMoreMoves = new boolean[4];
         int level = findLevel();
         for (int i = 0; i<4; i++) {
             if (isAi(i)) {
@@ -87,6 +93,7 @@ public class GameView extends FrameLayout {
             } else {
                 game.setPlayerNum(new HumanPlayer(i), i);
             }
+            noMoreMoves[i] = false;
         }
         setWillNotDraw(false);
         setLayoutParams( new FrameLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, Gravity.TOP));
@@ -127,16 +134,20 @@ public class GameView extends FrameLayout {
         indicator = new BusyIndicator(context, iView);
     }
 
-    public void notifyHasNoMove(int player) {
+    public void notifyHasNoMove(final int player) {
         indicator.hide();
+        if (noMoreMoves[player]) {
+            // Only notify the user once that a player has no more moves.
+            return;
+        }
         Log.d(tag, player + " over!");
         new AlertDialog.Builder(ui)
-            // TODO(matt): fix this string, probably only show it once.
-            .setMessage( R.string.red_ko)
+            .setMessage(context.getString(R.string.player_ko,
+                                          context.getString(colorNames[player])))
             .setCancelable(false)
             .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    game.boards.get(0).over = true;
+                    noMoreMoves[player] = true;
                     Log.d(tag, "ok!");
                 }
             })
