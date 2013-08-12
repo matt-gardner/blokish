@@ -32,7 +32,7 @@ public class Square implements Comparable<Square> {
 		return "("+i+", "+j+") ";
 	}
 
-	// TODO add criteria including max distance from origin corner : strategy is encouraging invading other's camp before filling one's own area
+	// TODO(pre-matt): add criteria including max distance from origin corner : strategy is encouraging invading other's camp before filling one's own area
 	/** So as to order square against center proximity */
 	public int compareTo(Square that) {
 		return this.distance()-that.distance();

@@ -68,7 +68,6 @@ public class AiPlayer implements Player {
         if (game.boards.get(color).pieces.isEmpty()) {
             Log.d(tag, "no more pieces for player : " + color);
             // no big deal, AI will continue for the other players. At the very end current player will be granted the winning message.
-            game.boards.get(color).over = true;
             return null;
         }
         Log.d(tag, "--------------------------------------------------------------------------------");
@@ -79,14 +78,13 @@ public class AiPlayer implements Player {
         List<Move> moves = thinkUpToNMoves(color, level);
         Log.d(tag, "# moves : " + moves.size());
         if (moves.size()==0) {
-            game.boards.get(color).over = true;
             return null;
         }
         Collections.sort(moves);
         Collections.reverse(moves);
         Move move = moves.get( 0);
         Log.d(tag, "best move actually is : " + move);
-        // TODO may be many moves with O1 and I2. But only 1 or 2 nice moves!!
+        // TODO(pre-matt): may be many moves with O1 and I2. But only 1 or 2 nice moves!!
         if (moves.size()>20) {
             // let's prune trivial moves
             for (int k=moves.size()-1; k>=2; k--) {
@@ -215,7 +213,7 @@ public class AiPlayer implements Player {
                                     second = new Move(piece, i, j);
                                     score = piece.count;
                                 }
-                                // TODO also include # of promissing seeds?
+                                // TODO(pre-matt): also include # of promissing seeds?
                             }
                         }
                     }

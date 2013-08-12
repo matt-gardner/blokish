@@ -96,7 +96,7 @@ public class ButtonsView extends FrameLayout {
 			Move move = new Move(piece.piece, piece.i, piece.j);
 			boolean possible = game.game.valid( move);
 			if (possible) {
-				// TODO refactor with place()
+				// TODO(pre-matt): refactor with place()
 				piece.movable=false;
 				piece.setLongClickable(false);
 				piece.setClickable(false);

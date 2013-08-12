@@ -253,7 +253,7 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
 	}
 	
 	public boolean onTouch(View v, MotionEvent event) {
-		// TODO possible to hook it in lifecycle? onAttachedToWindow() is to early...
+		// TODO(pre-matt): possible to hook it in lifecycle? onAttachedToWindow() is to early...
 		if (statusBarHeight<0) {
 			Rect decor = new Rect();
 			((Activity) context).getWindow().getDecorView().getWindowVisibleDisplayFrame(decor);
