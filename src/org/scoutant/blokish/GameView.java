@@ -85,6 +85,7 @@ public class GameView extends FrameLayout {
         super(context);
         this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.registerOnSharedPreferencesChangeListener(this);
         game = new Game(this);
         ui = (UI) context;
         noMoreMoves = new boolean[4];
@@ -134,6 +135,11 @@ public class GameView extends FrameLayout {
         iView.setLayoutParams(new FrameLayout.LayoutParams(150, 150, Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL));
         addView(iView);
         indicator = new BusyIndicator(context, iView);
+    }
+
+    @Override
+    public void onSharedPreferencesChange(SharedPreferences preferences, String key) {
+        Log.d(tag, "preference changed: " + key);
     }
 
     public void notifyHasNoMove(final int player) {
