@@ -22,6 +22,10 @@ public class AiPlayer implements Player {
         this.game = game;
     }
 
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
     public void takeTurn(MoveCallback callback) {
         new AITask(callback).execute(playerNum, level);
     }

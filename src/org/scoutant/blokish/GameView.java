@@ -33,6 +33,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -52,7 +53,7 @@ import android.widget.TextView;
 /**
  * For DnD approach, refer to http://blog.scoutant.org/index.php?post/2011/02/Approche-naturelle-de-Drag-and-Drop-en-Android
  */
-public class GameView extends FrameLayout {
+public class GameView extends FrameLayout implements OnSharedPreferenceChangeListener {
     private static String tag = "BLOKISH-GameView";
     private Paint paint = new Paint();
     // TODO(matt): make all of these private
@@ -85,16 +86,16 @@ public class GameView extends FrameLayout {
         super(context);
         this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        prefs.registerOnSharedPreferencesChangeListener(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
         game = new Game(this);
         ui = (UI) context;
         noMoreMoves = new boolean[4];
         int level = findLevel();
-        for (int i = 0; i<4; i++) {
+        for (int i=0; i<4; i++) {
             if (isAi(i)) {
-                game.setPlayerNum(new AiPlayer(i, level, game), i);
+                game.setPlayer(new AiPlayer(i, level, game), i);
             } else {
-                game.setPlayerNum(new HumanPlayer(i), i);
+                game.setPlayer(new HumanPlayer(i), i);
             }
             noMoreMoves[i] = false;
         }
@@ -138,8 +139,27 @@ public class GameView extends FrameLayout {
     }
 
     @Override
-    public void onSharedPreferencesChange(SharedPreferences preferences, String key) {
+    public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
         Log.d(tag, "preference changed: " + key);
+        int level = findLevel();
+        if (key.equals("aiLevel")) {
+            Log.d(tag, "changing AI level to " + level);
+            for (int i=0; i<4; i++) {
+                if (isAi(i)) {
+                    ((AiPlayer)game.getPlayer(i)).setLevel(level);
+                }
+            }
+        } else if (key.startsWith("ai")) {
+            int playerNum = Integer.parseInt(key.substring(2));
+            if (isAi(playerNum)) {
+                Log.d(tag, "setting player " + playerNum + " to AI");
+                game.setPlayer(new AiPlayer(playerNum, level, game), playerNum);
+            } else {
+                Log.d(tag, "setting player " + playerNum + " to human");
+                game.setPlayer(new HumanPlayer(playerNum), playerNum);
+            }
+        }
+        Log.d(tag, "done in preferences change");
     }
 
     public void notifyHasNoMove(final int player) {
@@ -290,6 +310,7 @@ public class GameView extends FrameLayout {
         lasts[ui.piece.color] = ui;
         ui.place(move.i, move.j, animate);
         tabs[move.piece.color].setText( ""+game.boards.get(move.piece.color).score);
+        reorderPieces(player);
         invalidate();
     }
 

@@ -45,8 +45,12 @@ public class Game {
                 currentPlayer = 0;
 	}
 
-        public void setPlayerNum(Player player, int playerNum) {
+        public void setPlayer(Player player, int playerNum) {
             players[playerNum] = player;
+        }
+
+        public Player getPlayer(int playerNum) {
+            return players[playerNum];
         }
 
         public int getCurrentPlayer() {
