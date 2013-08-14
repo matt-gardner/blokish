@@ -64,7 +64,7 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
     public int swipe=0;
     public int gone=0;
 
-    public Game game;
+    private Game game;
     public static int[] icons = { R.drawable.bol_rood, R.drawable.bol_groen, R.drawable.bol_blauw, R.drawable.bullet_ball_glass_yellow};
     public static int[] labels = { R.id.red, R.id.green, R.id.blue, R.id.orange};
     private int[] colorNames = {R.string.Red, R.string.Green, R.string.Blue, R.string.Orange};
@@ -220,6 +220,23 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
         return prefs.getBoolean(aiSetting, true);
     }
 
+    // TODO(matt): evaluate which of these methods are really necessary.
+    public boolean isValid(Move move) {
+        return game.valid(move);
+    }
+
+    public boolean isValid(Piece piece, int i, int j) {
+        return game.valid(piece, i, j);
+    }
+
+    public List<Move> getMoves() {
+        return game.moves;
+    }
+
+    public int getWinner() {
+        return game.winner();
+    }
+
     /**
      * Tell the game that a human player has ended his/her turn.  AI players have a separate
      * mechanism for telling the game that their turn is ended, and this logic could also
@@ -232,6 +249,33 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
         // This either starts a background task or passes, depending on whether the player is
         // an AI or not.  So we can do some extra logic here without worrying about it.
         game.endTurn();
+    }
+
+    /**
+     * Tell the game that a human player is taking his/her turn.
+     */
+    public void play(Move move) {
+        game.play(move);
+    }
+
+    public boolean isOver() {
+        return game.over();
+    }
+
+    public String getLog() {
+        return game.toString();
+    }
+
+    public int getScore(int player) {
+        return game.boards.get(player).score;
+    }
+
+    public Board getBoard(int player) {
+        return game.boards.get(player);
+    }
+
+    public int getPlayerNameId(int player) {
+        return colorNames[player];
     }
 
     /**

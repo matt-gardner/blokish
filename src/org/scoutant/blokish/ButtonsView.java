@@ -37,7 +37,7 @@ public class ButtonsView extends FrameLayout {
     private ImageButton cancel;
     private ImageButton ok;
 
-    private GameView game;
+    private GameView gameView;
 
     public ButtonsView(Context context) {
         super(context);
@@ -84,41 +84,40 @@ public class ButtonsView extends FrameLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        game = (GameView) getParent();
+        gameView = (GameView) getParent();
     }
 
     private OnClickListener doOk = new OnClickListener() {
         public void onClick(View v) {
             Log.d(tag, "ok...");
-            PieceUI piece = game.selected;
+            PieceUI piece = gameView.selected;
             if (piece==null) {
                 Log.e(tag, "cannot retrieve piece!");
                 return;
             }
             Move move = new Move(piece.piece, piece.i, piece.j);
-            boolean possible = game.game.valid( move);
+            boolean possible = gameView.isValid(move);
+            int player = move.piece.color;
             if (possible) {
                 // TODO(pre-matt): refactor with place()
                 piece.movable=false;
                 piece.setLongClickable(false);
                 piece.setClickable(false);
-                game.lasts[piece.piece.color] = piece;
+                gameView.lasts[player] = piece;
                 piece.invalidate();
-                ButtonsView.this.setVisibility(INVISIBLE);
-                ButtonsView.this.game.game.play( move);
-                ((GameView)getParent()).tabs[move.piece.color].setText(
-                        ""+game.game.boards.get(move.piece.color).score);
-                game.selected = null;
-                game.ui.turn = (piece.piece.color+1)%4;
-                game.endTurn();
+                setVisibility(INVISIBLE);
+                gameView.play(move);
+                ((GameView)getParent()).tabs[player].setText("" + gameView.getScore(player));
+                gameView.selected = null;
+                gameView.endTurn();
             }
         }
     };
     private OnClickListener doCancel = new OnClickListener() {
         public void onClick(View v) {
             Log.d(tag, "cancel...");
-            game.selected.replace();
-            game.selected = null;
+            gameView.selected.replace();
+            gameView.selected = null;
             ButtonsView.this.setVisibility(INVISIBLE);
         }
     };

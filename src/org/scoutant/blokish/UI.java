@@ -72,11 +72,11 @@ public class UI extends Activity {
         newgame();
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         source();
-        AppRater.app_launched( this);
+        AppRater.app_launched(this);
     }
 
     private void newgame() {
-        game = new GameView(UI.this);
+        game = new GameView(this);
         setContentView(game);
     }
 
@@ -114,20 +114,11 @@ public class UI extends Activity {
         if (item.getItemId() == MENU_ITEM_HELP) {
             startActivity( new Intent(this, Help.class));
         }
-        if (item.getItemId() == MENU_ITEM_PREFERENCES) {
+        else if (item.getItemId() == MENU_ITEM_PREFERENCES) {
             startActivity( new Intent(this, Settings.class));
         }
-        if (item.getItemId() == MENU_ITEM_HISTORY) {
-            Log.d(tag, ""+game.game);
-        }
-        if (item.getItemId() == MENU_ITEM_REPLAY) {
-            GameView old = game;
-            newgame();
-            Log.d(tag, "replay # moves : " + old.game.moves.size());
-            game.replay( old.game.moves);
-        }
-        if (item.getItemId() == MENU_ITEM_BACK) {
-            List<Move> moves = game.game.moves;
+        else if (item.getItemId() == MENU_ITEM_BACK) {
+            List<Move> moves = game.getMoves();
             int length = moves.size();
             if (length>=4) {
                 length -= 4;
@@ -135,9 +126,9 @@ public class UI extends Activity {
             moves = moves.subList(0, length);
             newgame();
             Log.i(tag, "replay # moves : " + length);
-            game.replay( moves);
+            game.replay(moves);
         }
-        if (item.getItemId() == MENU_ITEM_NEW) {
+        else if (item.getItemId() == MENU_ITEM_NEW) {
             new AlertDialog.Builder(this)
                 .setMessage( rs.getString( R.string.new_game) + "?")
                 .setCancelable(false)
@@ -154,12 +145,8 @@ public class UI extends Activity {
             .create()
                 .show();
         }
-        if (item.getItemId() == MENU_ITEM_PASS_TURN) {
+        else if (item.getItemId() == MENU_ITEM_PASS_TURN) {
             game.endTurn();
-        }
-        if (item.getItemId() == MENU_ITEM_FLIP) {
-            PieceUI piece = game.selected;
-            if (piece!=null) piece.flip();
         }
         return false;
     }
@@ -174,8 +161,8 @@ public class UI extends Activity {
     public void displayWinnerDialog() {
         game.indicator.hide();
         Log.d(tag, "game over !");
-        int winner = game.game.winner();
-        int score = game.game.boards.get(winner).score;
+        int winner = game.getWinner();
+        int score = game.getScore(winner);
         String message = "";
         boolean redWins = (winner==0 && prefs.getBoolean("ai", true));
         if (redWins) {
@@ -183,7 +170,7 @@ public class UI extends Activity {
             if (findRequestedLevel()<(4-1)) message += "\n" + rs.getString( R.string.try_next);
         } else {
             // message += "Player " + game.game.colors[winner] + " wins with score : " + score;
-            message += rs.getString( game.game.colors[winner]);
+            message += rs.getString(game.getPlayerNameId(winner));
             message += " " + rs.getString( R.string.wins_with_score) + " : ";
             message += score;
         }
@@ -226,8 +213,8 @@ public class UI extends Activity {
         try {
             fos = openFileOutput("moves.txt", Context.MODE_PRIVATE);
             if (fos==null) return;
-            if (!game.game.over()) {
-                fos.write( game.game.toString().getBytes());
+            if (!game.isOver()) {
+                fos.write( game.getLog().getBytes());
             } // if gave is over we do not save it, so as to open a blank game next time
             fos.close();
         } catch (FileNotFoundException e) {
@@ -249,7 +236,7 @@ public class UI extends Activity {
                 int i = Integer.valueOf(data[0]);
                 int j = Integer.valueOf(data[1]);
                 int color = Integer.valueOf(data[2]);
-                Piece piece = game.game.boards.get(color).findPieceByType(data[3] );
+                Piece piece = game.getBoard(color).findPieceByType(data[3] );
                 piece.reset();
                 for (int q = 4; q<data.length; q++) {
                     String[] position = data[q].split(",");

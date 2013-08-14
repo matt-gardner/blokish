@@ -229,6 +229,7 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
     private void gotCanvas(Canvas canvas) {
         this.canvas = canvas;
     }
+
     private PieceUI add(int i, int j){
         GameView game = (GameView) this.getParent();
         if (game.lasts[piece.color] == this && this.j<=20) {
@@ -337,7 +338,7 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
             } else {
                 game.buttons.setVisibility( VISIBLE);
                 game.buttons.bringToFront();
-                boolean okState = game.game.valid(piece, i, j) && !game.thinking;
+                boolean okState = game.isValid(piece, i, j) && !game.thinking;
                 game.buttons.setOkState( okState);
                 if (okState && vibrator!=null) vibrator.vibrate(20);
             }
