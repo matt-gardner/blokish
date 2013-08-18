@@ -89,19 +89,13 @@ public class UI extends Activity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.clear();
-        if (game.selected!=null) {
-            menu.add(Menu.NONE, MENU_ITEM_FLIP, Menu.NONE, R.string.flip).setIcon(android.R.drawable.ic_menu_set_as);
-        }
         menu.add(Menu.NONE, MENU_ITEM_BACK, Menu.NONE, R.string.undo).setIcon( R.drawable.left_48);
         menu.add(Menu.NONE, MENU_ITEM_NEW, Menu.NONE, R.string.new_game).setIcon( R.drawable.restart_48);
 
         menu.add(Menu.NONE, MENU_ITEM_HELP, Menu.NONE, R.string.help).setIcon( R.drawable.help_48);
         menu.add(Menu.NONE, MENU_ITEM_PREFERENCES, Menu.NONE, R.string.preferences).setIcon( R.drawable.preferences_48);
 
-        if (devmode) {
-            menu.add(Menu.NONE, MENU_ITEM_THINK, Menu.NONE, "AI").setIcon(android.R.drawable.ic_menu_manage);
-            menu.add(Menu.NONE, MENU_ITEM_HISTORY, Menu.NONE, "hist").setIcon(android.R.drawable.ic_menu_recent_history);
-        }
+        // TODO(matt): fix to check for whether current player is AI.
         if (!prefs.getBoolean("ai", true)) {
             menu.add(Menu.NONE, MENU_ITEM_PASS_TURN, Menu.NONE, R.string.i_pass).setIcon( R.drawable.checkmark_48);
         }
@@ -250,7 +244,6 @@ public class UI extends Activity {
             }
             newgame();
             game.replay( list);
-            game.reorderPieces();
         } catch (Exception e) {
             Log.e(tag, "yep error is :", e);
         }

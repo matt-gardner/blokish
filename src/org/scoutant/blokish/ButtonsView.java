@@ -87,10 +87,13 @@ public class ButtonsView extends FrameLayout {
         gameView = (GameView) getParent();
     }
 
+    // TODO(matt): Why is this here?  What does it do?  Oh, it's the green check box?  Is that
+    // right?  Can we move the functionality somewhere more sane?  Like, maybe to the HumanPlayer
+    // code?  Ne vem...
     private OnClickListener doOk = new OnClickListener() {
         public void onClick(View v) {
             Log.d(tag, "ok...");
-            PieceUI piece = gameView.selected;
+            PieceUI piece = gameView.getSelectedPiece();
             if (piece==null) {
                 Log.e(tag, "cannot retrieve piece!");
                 return;
@@ -108,7 +111,7 @@ public class ButtonsView extends FrameLayout {
                 setVisibility(INVISIBLE);
                 gameView.play(move);
                 ((GameView)getParent()).tabs[player].setText("" + gameView.getScore(player));
-                gameView.selected = null;
+                gameView.setSelectedPiece(null);
                 gameView.endTurn();
             }
         }
@@ -116,8 +119,8 @@ public class ButtonsView extends FrameLayout {
     private OnClickListener doCancel = new OnClickListener() {
         public void onClick(View v) {
             Log.d(tag, "cancel...");
-            gameView.selected.replace();
-            gameView.selected = null;
+            gameView.getSelectedPiece().replace();
+            gameView.setSelectedPiece(null);
             ButtonsView.this.setVisibility(INVISIBLE);
         }
     };

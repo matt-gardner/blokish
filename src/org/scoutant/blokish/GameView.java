@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.scoutant.blokish.model.AI;
 import org.scoutant.blokish.model.AiPlayer;
 import org.scoutant.blokish.model.Board;
 import org.scoutant.blokish.model.Game;
@@ -57,10 +56,10 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
     private static String tag = "BLOKISH-GameView";
     private Paint paint = new Paint();
     private Game game;
+    private PieceUI selected;
     // TODO(matt): make all of these private
     public int size;
     public ButtonsView buttons;
-    public PieceUI selected;
     public int selectedColor;
     public int swipe=0;
     public int gone=0;
@@ -206,9 +205,21 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (selected != null) return false;
+        if (hasPieceSelected()) return false;
         doTouch(event);
         return true;
+    }
+
+    public boolean hasPieceSelected() {
+        return selected != null;
+    }
+
+    public void setSelectedPiece(PieceUI selected) {
+        this.selected = selected;
+    }
+
+    public PieceUI getSelectedPiece() {
+        return selected;
     }
 
     public int getCurrentPlayer() {

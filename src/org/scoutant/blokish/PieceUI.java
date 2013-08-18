@@ -246,11 +246,12 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
         return this;
     }
 
+    @Override
     public boolean onLongClick(View v) {
         if (!movable) return false;
         GameView game = (GameView) v.getParent();
-        if (game.selected == null) {
-            game.selected = this;
+        if (!game.hasPieceSelected()) {
+            game.setSelectedPiece(this);
             return true;
         } else {
             if (!moving && !rotating) flip();
@@ -258,6 +259,7 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
         return false;
     }
 
+    @Override
     public boolean onTouch(View v, MotionEvent event) {
         // TODO(pre-matt): possible to hook it in lifecycle? onAttachedToWindow() is to early...
         if (statusBarHeight<0) {
@@ -270,12 +272,15 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
         GameView game = (GameView) getParent();
         int action = event.getAction();
 
-        if (game.selected==null && !PreferenceManager.getDefaultSharedPreferences(context).getBoolean("ai", true) && piece.color!=game.ui.turn) {
+        // TODO(matt): this is where to fix the ability to move pieces all over the place
+        if (!game.hasPieceSelected()
+                && !PreferenceManager.getDefaultSharedPreferences(context).getBoolean("ai", true)
+                && piece.color!=game.ui.turn) {
             game.doTouch(event);
             return false;
         }
 
-        if (game.selected==null) {
+        if (!game.hasPieceSelected()) {
             if (action==MotionEvent.ACTION_DOWN) {
                 rawX=event.getRawX();
                 rawY=event.getRawY();
@@ -283,13 +288,13 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
                 game.doTouch(event);
                 return false;
             }
-            int dX = Float.valueOf( event.getRawX()-rawX).intValue();
-            int dY = Float.valueOf( event.getRawY()-rawY).intValue();
-            if ( movable==false || -dY < Math.abs(dX) ) {
+            int dX = Float.valueOf(event.getRawX()-rawX).intValue();
+            int dY = Float.valueOf(event.getRawY()-rawY).intValue();
+            if (movable==false || -dY < Math.abs(dX)) {
                 game.doTouch(event);
                 return false;
             }
-            game.selected = this;
+            game.setSelectedPiece(this);
             moving = true;
             return false;
         }
@@ -306,7 +311,7 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
             }
             bringToFront();
         }
-        if (action==MotionEvent.ACTION_MOVE && game.selected==this) {
+        if (action==MotionEvent.ACTION_MOVE && game.getSelectedPiece() == this) {
             bringToFront();
             if (rotating) {
                 double r = Math.toDegrees( Math.atan2(event.getX()-radius, radius-event.getY()));
@@ -334,7 +339,7 @@ public class PieceUI extends FrameLayout implements OnTouchListener, OnLongClick
             if (j>20) {
                 game.buttons.setVisibility( INVISIBLE);
                 this.replace();
-                game.selected=null;
+                game.setSelectedPiece(null);
             } else {
                 game.buttons.setVisibility( VISIBLE);
                 game.buttons.bringToFront();
