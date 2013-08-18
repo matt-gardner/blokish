@@ -56,6 +56,7 @@ import android.widget.TextView;
 public class GameView extends FrameLayout implements OnSharedPreferenceChangeListener {
     private static String tag = "BLOKISH-GameView";
     private Paint paint = new Paint();
+    private Game game;
     // TODO(matt): make all of these private
     public int size;
     public ButtonsView buttons;
@@ -64,7 +65,6 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
     public int swipe=0;
     public int gone=0;
 
-    private Game game;
     public static int[] icons = { R.drawable.bol_rood, R.drawable.bol_groen, R.drawable.bol_blauw, R.drawable.bullet_ball_glass_yellow};
     public static int[] labels = { R.id.red, R.id.green, R.id.blue, R.id.orange};
     private int[] colorNames = {R.string.Red, R.string.Green, R.string.Blue, R.string.Orange};
@@ -205,11 +205,11 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
     public float downY;
 
     @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            if (selected!=null) return false;
-            doTouch(event);
-            return true;
-        }
+    public boolean onTouchEvent(MotionEvent event) {
+        if (selected != null) return false;
+        doTouch(event);
+        return true;
+    }
 
     public int getCurrentPlayer() {
         return game.getCurrentPlayer();
@@ -297,18 +297,20 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
     }
 
     public void doTouch(MotionEvent event) {
+        // TODO(matt): Is this where I need to check for current player?  Or can I put a hard
+        // barrier on how far the pieces go here?
         int action = event.getAction();
-        if (action==MotionEvent.ACTION_DOWN) {
-            downX=event.getRawX();
-            downY=event.getRawY();
+        if (action == MotionEvent.ACTION_DOWN) {
+            downX = event.getRawX();
+            downY = event.getRawY();
         }
-        if (action==MotionEvent.ACTION_MOVE ) {
-            swipePieces( selectedColor, - (swipe + Float.valueOf( event.getRawX()-downX).intValue()));
+        if (action == MotionEvent.ACTION_MOVE) {
+            swipePieces(selectedColor, - (swipe + Float.valueOf( event.getRawX()-downX).intValue()));
         }
-        if (action==MotionEvent.ACTION_UP ) {
+        if (action == MotionEvent.ACTION_UP) {
             swipe += Float.valueOf( event.getRawX()-downX).intValue();
-            downX=0;
-            swipePieces( selectedColor, -swipe);
+            downX = 0;
+            swipePieces(selectedColor, -swipe);
         }
     }
 
@@ -367,17 +369,12 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
         for (PieceUI piece : piecesInStore()) piece.setVisibility( piece.piece.color == color ? VISIBLE : INVISIBLE);
     }
 
-    public void swipePieces( int color, int x) {
+    public void swipePieces(int color, int x) {
         for (PieceUI piece : piecesInStore(color)) piece.swipe(x);
     }
 
 
-    public void reorderPieces() {
-        for (int i=0; i<4; i++)
-            reorderPieces(i);
-    }
-
-    public void reorderPieces( int color) {
+    public void reorderPieces(int color) {
         Log.d(tag, "reordering pieces for player " + color);
         List<PieceUI> pieces = piecesInStore(color);
         Collections.sort(pieces);
@@ -407,7 +404,7 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
         swipePieces(color, 0);
     }
 
-    private List<PieceUI> piecesInStore(){
+    private List<PieceUI> piecesInStore() {
         List<PieceUI> list = new ArrayList<PieceUI>();
         for (int k=0; k<this.getChildCount(); k++) {
             if (this.getChildAt(k) instanceof PieceUI) {
@@ -419,7 +416,8 @@ public class GameView extends FrameLayout implements OnSharedPreferenceChangeLis
         }
         return list;
     }
-    private List<PieceUI> piecesInStore(int color){
+
+    private List<PieceUI> piecesInStore(int color) {
         List<PieceUI> list = new ArrayList<PieceUI>();
         for (PieceUI piece : piecesInStore()) {
             if (piece.piece.color == color) list.add(piece);
